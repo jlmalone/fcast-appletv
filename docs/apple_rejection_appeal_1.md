@@ -1,3 +1,5 @@
+> Historical record (February 2026): response sent to App Review while the app was still submitted under its original working name. The app has since been renamed **OvrCast** in line with the FCast trademark policy; the technical details below are unchanged.
+
   Response to Guideline 2.1 - Information Needed
 
   1. How does your tvOS app connect with the FCast sender?

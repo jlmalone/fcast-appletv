@@ -19,9 +19,9 @@ Native tvOS application implementing the FCast protocol v3 for receiving cast vi
 
 ## Project Structure
 ```
-OpenCast/
-├── OpenCastApp.swift              # App entry point
-├── OpenCast-Bridging-Header.h     # TVVLCKit Obj-C bridge
+OvrCast/
+├── OvrCastApp.swift               # App entry point
+├── OvrCast-Bridging-Header.h      # TVVLCKit Obj-C bridge
 ├── PrivacyInfo.xcprivacy               # App Store privacy manifest
 ├── Protocol/
 │   ├── FCastPackets.swift              # Opcodes, message types, capabilities
@@ -52,7 +52,7 @@ OpenCast/
 ## Build
 ```bash
 pod install  # first time only
-xcodebuild -workspace OpenCast.xcworkspace -scheme OpenCast -destination "platform=tvOS Simulator,name=Apple TV 4K (3rd generation)" build
+xcodebuild -workspace OvrCast.xcworkspace -scheme OvrCast -destination "platform=tvOS Simulator,name=Apple TV 4K (3rd generation)" build
 ```
 
 ## Format Routing (PlayerManager.selectBackend)
@@ -64,18 +64,21 @@ xcodebuild -workspace OpenCast.xcworkspace -scheme OpenCast -destination "platfo
 | `video/mp4`, `video/quicktime`, `audio/*` | `.avPlayer` | PlayerView |
 | Everything else (MKV, WebM, AVI, TS) | `.vlc` | VLCPlayerView |
 
-## Current Status (v1.4, 2026-03-12)
-- **Media casting**: WORKING (MP4, MKV, WebM, HLS all confirmed via FCast sender)
-- **Image casting**: WORKING
-- **Screen mirroring (WHEP)**: Fixed — stored video track race condition resolved, Metal renderer verified
-- **Demo mode**: "Play Sample" on idle screen plays Big Buck Bunny MP4
-- **Trademark compliance**: Renamed from "FCast Receiver" to "OvrCast" per FUTO trademark policy
-- **App Store readiness**: Privacy manifest, original icon, ATS tightened, version bumped
+## Current Status (v1.6 build 3, 2026-07-05)
+- **Media casting**: WORKING (verified E2E on tvOS 26.5 simulator: FCast handshake + MP4 playback via tools/fcast-sender.py)
+- **Apple delivery issues from 1.5(2) all fixed**: ITMS-90683 (camera+mic purpose strings in Info.plist), ITMS-90994 (built with tvOS 26.5 SDK / Xcode 26.6), ITMS-90471 (2x top shelf images added, verified in Assets.car)
+- **Demo mode**: "Play Sample" now has an ordered mirror list (googleapis + blender.org) with automatic fallback on host failure
+- **Trademark compliance**: unique name (OvrCast) + original icon; FUTO's suggested disclaimer in About, README, store listing, and privacy page; GitHub repo description leads with OvrCast; LICENSE (MIT) added
+- **ASC state**: version 1.6 PREPARE_FOR_SUBMISSION with description/keywords/subtitle/privacy URL+text/categories/age rating/review notes/screenshots all set; privacy page live at https://jlmalone.github.io/opencast-tvos/ (GitHub Pages from /docs)
+- **1.6(3) build validated and uploaded**; owner actions: pick the build + submit for review in ASC, and remove the old rejected "FCastReceiver" app record (Apple ID 6759440031) via ASC UI (API cannot delete app records)
 
 ## App Store Submission Notes
-- **Bundle ID**: vision.salient.opencast
+- **Bundle ID**: vision.salient.opencast (ASC app ID 6760440913)
 - **Team**: 44SCLSYCZZ
-- **Signing**: Manual — needs new provisioning profile for new bundle ID
+- **Signing**: Manual — profile "OpenCast App Store 2026" (embeds cert D9RMVPNY6M, expires 2027-05-28); unlock keychain first: `~/.appstoreconnect/kulus_unlock_signing.sh`
+- **Archive**: `xcodebuild -workspace OvrCast.xcworkspace -scheme OvrCast -destination 'generic/platform=tvOS' archive -scmProvider system` (`-scmProvider system` stops SPM from poking the login keychain for github.com)
+- **Export**: run with `env PATH="/usr/bin:/bin:/usr/sbin:/sbin"` — Homebrew rsync 3.4.4 breaks IDEDistributionCreateIPAStep ("Copy failed"; Xcode passes openrsync-only flags); plus `-exportOptionsPlist ~/.appstoreconnect/opencast_ExportOptions.plist -allowProvisioningUpdates` and the ASC API key auth flags (key D5XN56FV5J)
+- **Podfile gotcha**: TVVLCKit ships as an xcframework; the bitcode-strip post_install hook globs both framework layouts — verify with `otool -l ... | grep -c __LLVM` (must be 0) after any `pod install`
 - **Privacy**: No data collected, no tracking, no analytics. PrivacyInfo.xcprivacy included.
 - **ATS**: `NSAllowsArbitraryLoadsForMedia` + `NSAllowsLocalNetworking` (media receiver plays sender-provided URLs)
 - **LGPL**: TVVLCKit is dynamically linked via `use_frameworks!` (LGPL 2.1 compliant)

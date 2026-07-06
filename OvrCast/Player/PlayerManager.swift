@@ -161,6 +161,10 @@ class PlayerManager {
             return
         }
 
+        // A real cast ends any sample-fallback sequence. playSample(at:) re-arms
+        // the index after this call.
+        sampleFallbackIndex = nil
+
         // Stop any current playback first
         stopInternal()
 
@@ -197,6 +201,7 @@ class PlayerManager {
                 if item.status == .failed {
                     let msg = item.error?.localizedDescription ?? "Playback failed"
                     print("[PlayerManager] AVPlayer error: \(msg)")
+                    if self.advanceSampleFallback() { return }
                     self.lastError = msg
                     self.playbackState = .idle
                     self.isPresenting = false
@@ -408,14 +413,35 @@ class PlayerManager {
 
     // MARK: - Demo
 
-    /// Public domain sample video for App Store reviewers and first-time users.
-    static let sampleVideoURL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    /// Public domain sample videos for App Store reviewers and first-time users.
+    /// Ordered mirrors: if one host is unreachable, playback advances to the next.
+    static let sampleVideoURLs = [
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4",
+    ]
+
+    /// Index into sampleVideoURLs while a sample is playing; nil during normal casts.
+    private var sampleFallbackIndex: Int?
 
     func playSample() {
+        playSample(at: 0)
+    }
+
+    private func playSample(at index: Int) {
         play(message: PlayMessage(
             container: "video/mp4",
-            url: Self.sampleVideoURL
+            url: Self.sampleVideoURLs[index]
         ))
+        // Set after play(message:), which clears it for normal casts.
+        sampleFallbackIndex = index
+    }
+
+    /// Returns true when a failed sample play was retried on the next mirror.
+    private func advanceSampleFallback() -> Bool {
+        guard let index = sampleFallbackIndex, index + 1 < Self.sampleVideoURLs.count else { return false }
+        print("[PlayerManager] Sample host \(index) failed, trying mirror \(index + 1)")
+        playSample(at: index + 1)
+        return true
     }
 
     // MARK: - Playlist

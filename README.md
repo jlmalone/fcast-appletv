@@ -24,8 +24,8 @@ Built by **Salient Vision Technologies, LLC**. This is an independent community 
 
 ## Requirements
 
-- Xcode 16+ with the tvOS 17.0 SDK
-- Apple Developer Program membership (required for the Multicast Networking entitlement)
+- Xcode 26+ (App Store uploads require the tvOS 26 SDK since April 28, 2026; deployment target stays tvOS 17.0)
+- Apple Developer Program membership (for device installs and distribution)
 - Apple TV (4th generation or later) running tvOS 17.0+
 
 ---
@@ -48,22 +48,18 @@ pod install
 ### 3. Open in Xcode
 
 ```bash
-open OpenCast.xcworkspace
+open OvrCast.xcworkspace
 ```
 
 ### 4. Configure signing
 
-- Select the `OpenCast` target → **Signing & Capabilities**
+- Select the `OvrCast` target → **Signing & Capabilities**
 - Choose your development team
 - Change the Bundle Identifier if needed (default: `vision.salient.opencast`)
 
-### 5. Add the Multicast Networking capability
+> **Note:** No Multicast Networking entitlement is needed. The app only *advertises* a Bonjour service (`NWListener` with a service registration), which requires no special entitlement; the restricted `com.apple.developer.networking.multicast` entitlement is only for apps that browse/scan multicast directly.
 
-In **Signing & Capabilities**, click `+` and search for **Multicast Networking**. This entitlement is required for Bonjour/mDNS advertisement so sender apps can discover the Apple TV automatically.
-
-> **Note:** For App Store distribution, `com.apple.developer.networking.multicast` requires explicit approval from Apple. For development and TestFlight, it works with any paid developer account.
-
-### 6. Build and run
+### 5. Build and run
 
 Select your Apple TV as the target device and press Run. The idle screen will appear showing the device name, local IP address, and a QR code.
 
@@ -86,9 +82,9 @@ Once the app is running on your Apple TV:
 ## Project Structure
 
 ```
-OpenCast/
-├── FCastReceiverApp.swift              # @main App entry point
-├── FCastReceiver-Bridging-Header.h     # TVVLCKit Obj-C bridge
+OvrCast/
+├── OvrCastApp.swift                    # @main App entry point
+├── OvrCast-Bridging-Header.h           # TVVLCKit Obj-C bridge
 ├── PrivacyInfo.xcprivacy               # App Store privacy manifest
 ├── Protocol/
 │   ├── FCastPackets.swift              # Opcodes, message types, capabilities
@@ -177,10 +173,10 @@ Receiver →  Sender:   Pong
 
 ## App Icons
 
-The repository includes app icons generated from the official FCast brand assets (dark navy background, FCast logo centered). Icons are located in:
+The app icon and top shelf art are original OvrCast artwork (white play-and-signal mark on a dark navy gradient). Per the [FCast trademark policy](https://docs.fcast.org/overview/trademark-policy/), the FCast logo is not used as the app icon. Icons are located in:
 
 ```
-OpenCast/Assets.xcassets/App Icon & Top Shelf Image.brandassets/
+OvrCast/Assets.xcassets/App Icon & Top Shelf Image.brandassets/
 ```
 
 tvOS uses a layered parallax icon format (`brandassets` + `imagestack`). Included sizes:
@@ -190,8 +186,8 @@ tvOS uses a layered parallax icon format (`brandassets` + `imagestack`). Include
 | App Icon @1x | 400×240 |
 | App Icon @2x | 800×480 |
 | App Icon (App Store) | 1280×768 |
-| Top Shelf Image | 1920×720 |
-| Top Shelf Image Wide | 2320×720 |
+| Top Shelf Image @1x / @2x | 1920×720 / 3840×1440 |
+| Top Shelf Image Wide @1x / @2x | 2320×720 / 4640×1440 |
 
 To use custom icons, replace the PNG files inside each `Content.imageset` folder. The `Contents.json` structure must remain intact.
 
@@ -298,7 +294,7 @@ This application is an independent community implementation of the FCast protoco
 
 ## License
 
-MIT — same license as the FCast protocol itself. See [futo-org/fcast](https://github.com/futo-org/fcast) for the official protocol specification.
+MIT (see [LICENSE](LICENSE)), the same license as the FCast reference implementations. See [futo-org/fcast](https://github.com/futo-org/fcast) for the official protocol specification.
 
 ---
 

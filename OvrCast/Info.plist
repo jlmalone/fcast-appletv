@@ -28,6 +28,13 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>OvrCast uses the local network to receive video and audio streams from FCast-compatible sender devices.</string>
+	<!-- OvrCast never captures camera or microphone input. The embedded WebRTC
+	     framework (screen-mirror receive path) references those APIs, so App
+	     Store delivery requires the purpose strings (ITMS-90683). -->
+	<key>NSCameraUsageDescription</key>
+	<string>OvrCast does not use the camera. This notice is required by the embedded WebRTC framework, which is used only to receive screen-mirroring streams from sender devices.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OvrCast does not use the microphone. This notice is required by the embedded WebRTC framework, which is used only to receive screen-mirroring streams from sender devices.</string>
 	<key>UIApplicationIdleTimerDisabled</key>
 	<true/>
 	<!-- Media receiver: senders provide arbitrary URLs including http:// streams,

@@ -15,9 +15,12 @@ post_install do |installer|
     end
   end
 
-  # Strip bitcode from TVVLCKit fat framework (Apple rejects bitcode since Xcode 14)
+  # Strip bitcode from TVVLCKit binaries (Apple rejects bitcode since Xcode 14).
+  # The pod ships as an xcframework (one framework per slice); older versions
+  # shipped a single fat framework — glob both layouts.
   bitcode_strip = `xcrun -find bitcode_strip`.strip
-  Dir.glob("Pods/TVVLCKit/TVVLCKit.framework/TVVLCKit").each do |path|
+  Dir.glob(["Pods/TVVLCKit/TVVLCKit.framework/TVVLCKit",
+            "Pods/TVVLCKit/TVVLCKit.xcframework/*/TVVLCKit.framework/TVVLCKit"]).each do |path|
     system(bitcode_strip, path, "-r", "-o", path)
     puts "Stripped bitcode from #{path}"
   end
