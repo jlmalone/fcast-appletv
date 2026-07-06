@@ -37,6 +37,10 @@
 	<string>OvrCast does not use the microphone. This notice is required by the embedded WebRTC framework, which is used only to receive screen-mirroring streams from sender devices.</string>
 	<key>UIApplicationIdleTimerDisabled</key>
 	<true/>
+	<!-- Only standard TLS/DTLS transport encryption (HTTPS media, WebRTC DTLS-SRTP);
+	     qualifies for the export-compliance exemption, so ASC never asks per build. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- Media receiver: senders provide arbitrary URLs including http:// streams,
 	     local network servers, and non-HTTPS media. AVFoundation media loads require
 	     the media exception. Local networking covers WHEP/WebRTC SDP on LAN. -->
