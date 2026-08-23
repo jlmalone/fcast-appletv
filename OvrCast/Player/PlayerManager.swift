@@ -63,6 +63,19 @@ class PlayerManager {
     /// Called on AVPlayer load failure so FCastServer can send PlaybackError to sender.
     var onPlaybackError: ((String) -> Void)?
 
+    /// Reject non-finite or out-of-range seek targets before VLC/AVPlayer conversion.
+    private func boundedSeekSeconds(_ seconds: Double) -> Double? {
+        guard seconds.isFinite, seconds >= 0 else { return nil }
+        return seconds
+    }
+
+    private func vlcSeekMilliseconds(from seconds: Double) -> Int32? {
+        guard let bounded = boundedSeekSeconds(seconds) else { return nil }
+        let milliseconds = bounded * 1000
+        guard milliseconds.isFinite, milliseconds <= Double(Int32.max) else { return nil }
+        return Int32(milliseconds)
+    }
+
     // MARK: - Init / Deinit
 
     init() {
@@ -213,8 +226,8 @@ class PlayerManager {
 
         avPlayer.replaceCurrentItem(with: item)
 
-        if let startTime = message.time, startTime > 0 {
-            avPlayer.seek(to: CMTime(seconds: startTime, preferredTimescale: 600))
+        if let startTime = message.time, let bounded = boundedSeekSeconds(startTime), bounded > 0 {
+            avPlayer.seek(to: CMTime(seconds: bounded, preferredTimescale: 600))
         }
         if let vol = message.volume { setVolume(vol) }
         if let spd = message.speed { setSpeed(spd) }
@@ -252,10 +265,10 @@ class PlayerManager {
         vlcPlayer = player
         player.play()
 
-        if let startTime = message.time, startTime > 0 {
+        if let startTime = message.time, let ms = vlcSeekMilliseconds(from: startTime), ms > 0 {
             // VLC seek uses milliseconds for time
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak player] in
-                player?.time = VLCTime(int: Int32(startTime * 1000))
+                player?.time = VLCTime(int: ms)
             }
         }
         if let vol = message.volume { setVolume(vol) }
@@ -374,11 +387,13 @@ class PlayerManager {
     }
 
     func seek(to seconds: Double) {
+        guard let bounded = boundedSeekSeconds(seconds) else { return }
         switch activeBackend {
         case .avPlayer:
-            avPlayer.seek(to: CMTime(seconds: seconds, preferredTimescale: 600))
+            avPlayer.seek(to: CMTime(seconds: bounded, preferredTimescale: 600))
         case .vlc:
-            vlcPlayer?.time = VLCTime(int: Int32(seconds * 1000))
+            guard let ms = vlcSeekMilliseconds(from: bounded) else { return }
+            vlcPlayer?.time = VLCTime(int: ms)
         case .image, .webrtc:
             break
         }
